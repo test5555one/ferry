@@ -1,0 +1,17 @@
+@import "tailwindcss";
+
+:root { color-scheme: light; }
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; min-height: 100%; }
+body {
+  background: #eef6fb;
+  color: #0d2638;
+  font-family: Arial, Helvetica, sans-serif;
+}
+button, input, select { font: inherit; }
+@media print {
+  body { background: white; }
+  .no-print { display: none !important; }
+  .print-only { display: block !important; }
+}
+.print-only { display: none; }

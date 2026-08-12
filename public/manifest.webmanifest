@@ -1,0 +1,9 @@
+{
+  "name": "Föhr-Reederei Kassensystem",
+  "short_name": "Föhr Kasse",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#eef6fb",
+  "theme_color": "#063b5c",
+  "lang": "de"
+}
