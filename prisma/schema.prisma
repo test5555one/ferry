@@ -1,0 +1,144 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  KASSIERER
+  SCANNER
+}
+
+enum TariffCode {
+  DAYSAVER
+  SINGLE
+  RETURN
+  WEEK
+  MONTH
+  WORKER
+}
+
+enum TicketStatus {
+  SOLD
+  CANCELLED
+  BLOCKED
+  USED_OUT
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  name      String?
+  password  String
+  role      Role     @default(KASSIERER)
+  createdAt DateTime @default(now())
+  tickets   Ticket[] @relation("ownerTickets")
+  sessions  AuditLog[]
+}
+
+model Tariff {
+  id          Int        @id @default(autoincrement())
+  code        TariffCode @unique
+  name        String
+  grossPrice  Decimal    @db.Decimal(10,2)
+  taxPercent  Int
+  description String?
+  createdAt   DateTime   @default(now())
+}
+
+model Ticket {
+  id            String       @id @default(uuid())
+  ticketNumber  String       @unique
+  qrToken       String       @unique
+  tariff        Tariff       @relation(fields: [tariffId], references: [id])
+  tariffId      Int
+  purchaserName String?
+  purchaserEmail String?
+  persons       Int          @default(1)
+  extras        Json?
+  priceNet      Decimal      @db.Decimal(10,2)
+  priceGross    Decimal      @db.Decimal(10,2)
+  taxAmount     Decimal      @db.Decimal(10,2)
+  status        TicketStatus @default(SOLD)
+  totalUses     Int
+  remainingUses Int
+  validFrom     DateTime
+  validUntil    DateTime?
+  soldAt        DateTime     @default(now())
+  owner         User?        @relation("ownerTickets", fields: [ownerId], references: [id])
+  ownerId       String?
+  uses          TicketUse[]
+  walletPasses  WalletPass[]
+  payments      Payment[]
+  receipts      Receipt[]
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+}
+
+model TicketUse {
+  id        String   @id @default(uuid())
+  ticket    Ticket   @relation(fields: [ticketId], references: [id])
+  ticketId  String
+  usedAt    DateTime @default(now())
+  usedBy    User?    @relation(fields: [usedById], references: [id])
+  usedById  String?
+  location  String?
+}
+
+model Payment {
+  id          String   @id @default(uuid())
+  ticket      Ticket   @relation(fields: [ticketId], references: [id])
+  ticketId    String
+  method      String
+  amountNet   Decimal  @db.Decimal(10,2)
+  amountGross Decimal  @db.Decimal(10,2)
+  taxAmount   Decimal  @db.Decimal(10,2)
+  createdAt   DateTime @default(now())
+}
+
+model Receipt {
+  id        String   @id @default(uuid())
+  ticket    Ticket   @relation(fields: [ticketId], references: [id])
+  ticketId  String
+  html      String
+  createdAt DateTime @default(now())
+}
+
+model WalletPass {
+  id         String   @id @default(uuid())
+  ticket     Ticket   @relation(fields: [ticketId], references: [id])
+  ticketId   String
+  provider   String
+  passUrl    String?
+  passData   Json?
+  issuedAt   DateTime @default(now())
+}
+
+model Vehicle {
+  id        Int      @id @default(autoincrement())
+  type      String
+  price     Decimal  @db.Decimal(10,2)
+  createdAt DateTime @default(now())
+}
+
+model Report {
+  id        String   @id @default(uuid())
+  name      String
+  data      Json
+  periodFrom DateTime
+  periodTo   DateTime
+  createdAt DateTime @default(now())
+}
+
+model AuditLog {
+  id        String   @id @default(uuid())
+  user      User?    @relation(fields: [userId], references: [id])
+  userId    String?
+  action    String
+  meta      Json?
+  createdAt DateTime @default(now())
+}

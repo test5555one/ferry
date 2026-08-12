@@ -1,8 +1,23 @@
+version: '3.8'
 services:
-  app:
-    build:
-      context: .
-      dockerfile: docker/Dockerfile
+  db:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: ferry
+      POSTGRES_PASSWORD: ferry_pass
+      POSTGRES_DB: ferry_db
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+  web:
+    build: .
+    environment:
+      DATABASE_URL: postgres://ferry:ferry_pass@db:5432/ferry_db
+      NEXT_PUBLIC_BASE_URL: http://localhost:3000
     ports:
       - "3000:3000"
-    restart: unless-stopped
+    depends_on:
+      - db
+volumes:
+  db-data:
